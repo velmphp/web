@@ -80,7 +80,15 @@ final class RecordSerializer
             if ($name === 'display_name') {
                 $out['display_name'] = $row['display_name'] ?? Registry::with(
                     $env->registry,
-                    static fn (): string => $modelClass::displayNameFor($row),
+                    function () use ($env, $modelClass, $row): string {
+                        $displayClass = Model::resolveStaticHookClass(
+                            $env->registry,
+                            $modelClass::name(),
+                            'displayNameFor',
+                        ) ?? Model::class;
+
+                        return $displayClass::displayNameFor($row);
+                    },
                 );
 
                 continue;
