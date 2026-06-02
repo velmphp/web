@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Velm\Environment;
+use Velm\Exception\AccessDeniedException;
 use Velm\Web\Api\DomainParser;
 use Velm\Web\Api\InvalidDomainException;
 use Velm\Web\Api\ModelNotFoundException;
@@ -56,6 +57,8 @@ final class RecordController
             ));
         } catch (ModelNotFoundException $exception) {
             return response()->json(['message' => $exception->getMessage()], 404);
+        } catch (AccessDeniedException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 403);
         } catch (\InvalidArgumentException $exception) {
             return response()->json(['message' => $exception->getMessage()], 400);
         }
@@ -80,6 +83,8 @@ final class RecordController
             return response()->json($records->create($env, $model, $values), 201);
         } catch (ModelNotFoundException $exception) {
             return response()->json(['message' => $exception->getMessage()], 404);
+        } catch (AccessDeniedException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 403);
         } catch (\InvalidArgumentException $exception) {
             return response()->json(['message' => $exception->getMessage()], 400);
         }
@@ -108,6 +113,8 @@ final class RecordController
             return response()->json($records->write($env, $model, $recordId, $values));
         } catch (ModelNotFoundException|RecordNotFoundException $exception) {
             return response()->json(['message' => $exception->getMessage()], 404);
+        } catch (AccessDeniedException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 403);
         } catch (\InvalidArgumentException $exception) {
             return response()->json(['message' => $exception->getMessage()], 400);
         }
@@ -131,7 +138,11 @@ final class RecordController
 
             return response()->noContent();
         } catch (ModelNotFoundException|RecordNotFoundException $exception) {
-            return response()->json(['message' => $exception->getMessage()], 404);
+            return response(['message' => $exception->getMessage()], 404)
+                ->header('Content-Type', 'application/json');
+        } catch (AccessDeniedException $exception) {
+            return response(['message' => $exception->getMessage()], 403)
+                ->header('Content-Type', 'application/json');
         }
     }
 }
