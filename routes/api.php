@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Velm\Web\Http\Controllers\Many2oneController;
 use Velm\Web\Http\Controllers\RecordController;
 use Velm\Web\Http\Controllers\ViewController;
 
@@ -19,3 +20,6 @@ Route::patch('records/{recordId}', [RecordController::class, 'update'])
 Route::delete('records/{recordId}', [RecordController::class, 'destroy'])
     ->whereNumber('recordId')
     ->name('velm.api.records.destroy');
+
+Route::get('m2o/search', [Many2oneController::class, 'search'])
+    ->name('velm.api.m2o.search');
