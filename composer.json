@@ -1,0 +1,15 @@
+{
+    "name": "velmphp/web",
+    "description": "Velm HTTP layer — routes, middleware, JSON API",
+    "license": "LGPL-3.0-or-later",
+    "type": "library",
+    "require": {
+        "php": "^8.3",
+        "velmphp/core": "@dev",
+        "velmphp/modules": "@dev",
+        "velmphp/views": "@dev"
+    },
+    "autoload": { "psr-4": { "Velm\\Web\\": "src/" } },
+    "extra": { "branch-alias": { "dev-main": "1.x-dev" } },
+    "minimum-stability": "dev"
+}
