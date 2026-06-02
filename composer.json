@@ -5,11 +5,27 @@
     "type": "library",
     "require": {
         "php": "^8.3",
+        "illuminate/routing": "^13.0",
+        "illuminate/support": "^13.0",
         "velmphp/core": "@dev",
         "velmphp/modules": "@dev",
         "velmphp/views": "@dev"
     },
+    "require-dev": {
+        "orchestra/testbench": "^11.0",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0",
+        "velmphp/framework": "@dev"
+    },
     "autoload": { "psr-4": { "Velm\\Web\\": "src/" } },
-    "extra": { "branch-alias": { "dev-main": "1.x-dev" } },
+    "autoload-dev": {
+        "psr-4": { "Velm\\Web\\Tests\\": "tests/" }
+    },
+    "extra": {
+        "laravel": {
+            "providers": ["Velm\\Web\\WebServiceProvider"]
+        },
+        "branch-alias": { "dev-main": "1.x-dev" }
+    },
     "minimum-stability": "dev"
 }
