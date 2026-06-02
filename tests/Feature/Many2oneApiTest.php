@@ -58,3 +58,45 @@ test('get api m2o search requires model query parameter', function (): void {
         ->assertStatus(400)
         ->assertJsonPath('message', 'Query parameter model is required.');
 });
+
+test('post api m2o quick-create creates a country by name', function (): void {
+    $response = $this->postJson('/api/m2o/quick-create', [
+        'model' => 'res.country',
+        'name' => 'Luxembourg',
+    ]);
+
+    $response->assertCreated()
+        ->assertJsonPath('label', 'Luxembourg')
+        ->assertJsonStructure(['id', 'label']);
+
+    $id = (int) $response->json('id');
+    $env = app(\Velm\Environment::class);
+
+    expect($env->browse('res.country', [$id])->read()[0]['name'])->toBe('Luxembourg');
+});
+
+test('post api m2o quick-create returns 400 when name is missing', function (): void {
+    $this->postJson('/api/m2o/quick-create', [
+        'model' => 'res.country',
+        'name' => '   ',
+    ])
+        ->assertStatus(400)
+        ->assertJsonPath('message', "Missing 'name'.");
+});
+
+test('post api m2o quick-create returns 404 for unknown model', function (): void {
+    $this->postJson('/api/m2o/quick-create', [
+        'model' => 'no.such',
+        'name' => 'Test',
+    ])
+        ->assertNotFound()
+        ->assertJsonPath('message', 'Unknown model no.such.');
+});
+
+test('post api m2o quick-create requires model in body', function (): void {
+    $this->postJson('/api/m2o/quick-create', [
+        'name' => 'Test',
+    ])
+        ->assertStatus(400)
+        ->assertJsonPath('message', 'Body field model is required.');
+});

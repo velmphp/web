@@ -23,3 +23,5 @@ Route::delete('records/{recordId}', [RecordController::class, 'destroy'])
 
 Route::get('m2o/search', [Many2oneController::class, 'search'])
     ->name('velm.api.m2o.search');
+Route::post('m2o/quick-create', [Many2oneController::class, 'quickCreate'])
+    ->name('velm.api.m2o.quick-create');

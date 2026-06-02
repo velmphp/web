@@ -8,6 +8,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Velm\Environment;
 use Velm\Web\Api\ModelNotFoundException;
+use Velm\Web\Api\CannotQuickCreateException;
+use Velm\Web\Api\Many2oneQuickCreate;
 use Velm\Web\Api\Many2oneSearch;
 
 final class Many2oneController
@@ -30,6 +32,29 @@ final class Many2oneController
             return response()->json($search->search($env, $model, $query, $limit));
         } catch (ModelNotFoundException $exception) {
             return response()->json(['message' => $exception->getMessage()], 404);
+        }
+    }
+
+    public function quickCreate(
+        Request $request,
+        Environment $env,
+        Many2oneQuickCreate $quickCreate,
+    ): JsonResponse {
+        $model = (string) $request->json('model', '');
+        $name = trim((string) $request->json('name', ''));
+
+        if ($model === '') {
+            return response()->json(['message' => 'Body field model is required.'], 400);
+        }
+
+        try {
+            return response()->json($quickCreate->create($env, $model, $name), 201);
+        } catch (ModelNotFoundException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 404);
+        } catch (CannotQuickCreateException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 400);
+        } catch (\InvalidArgumentException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 400);
         }
     }
 }
