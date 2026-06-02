@@ -9,5 +9,13 @@ use Velm\Web\Http\Controllers\ViewController;
 Route::get('views/{module}/{name}', ViewController::class)
     ->name('velm.api.views.show');
 
-Route::get('records', RecordController::class)
+Route::get('records', [RecordController::class, 'index'])
     ->name('velm.api.records.index');
+Route::post('records', [RecordController::class, 'store'])
+    ->name('velm.api.records.store');
+Route::patch('records/{recordId}', [RecordController::class, 'update'])
+    ->whereNumber('recordId')
+    ->name('velm.api.records.update');
+Route::delete('records/{recordId}', [RecordController::class, 'destroy'])
+    ->whereNumber('recordId')
+    ->name('velm.api.records.destroy');

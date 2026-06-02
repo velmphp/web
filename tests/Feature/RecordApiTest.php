@@ -76,3 +76,64 @@ test('get api records requires model query parameter', function (): void {
         ->assertStatus(400)
         ->assertJsonPath('message', 'Query parameter model is required.');
 });
+
+test('post api records creates a partner', function (): void {
+    $response = $this->postJson('/api/records?model=res.partner', [
+        'name' => 'New Partner',
+        'active' => true,
+    ]);
+
+    $response->assertCreated()
+        ->assertJsonPath('name', 'New Partner')
+        ->assertJsonPath('active', true);
+
+    expect($response->json('id'))->toBeInt();
+});
+
+test('post api records accepts many2one as id pair', function (): void {
+    $env = app(\Velm\Environment::class);
+    $countryId = $env->model('res.country')->create(['name' => 'France', 'code' => 'FR'])->ids()[0];
+
+    $response = $this->postJson('/api/records?model=res.partner', [
+        'name' => 'Paris Co',
+        'country_id' => [$countryId, 'France'],
+    ]);
+
+    $response->assertCreated()
+        ->assertJsonPath('country_id', [$countryId, 'France']);
+});
+
+test('patch api records updates a partner', function (): void {
+    $env = app(\Velm\Environment::class);
+    $id = $env->model('res.partner')->create(['name' => 'Before'])->ids()[0];
+
+    $response = $this->patchJson("/api/records/{$id}?model=res.partner", [
+        'name' => 'After',
+    ]);
+
+    $response->assertOk()
+        ->assertJsonPath('id', $id)
+        ->assertJsonPath('name', 'After');
+});
+
+test('patch api records returns 404 for missing record', function (): void {
+    $this->patchJson('/api/records/999?model=res.partner', ['name' => 'Nope'])
+        ->assertNotFound()
+        ->assertJsonPath('message', 'res.partner(999) not found.');
+});
+
+test('delete api records removes a partner', function (): void {
+    $env = app(\Velm\Environment::class);
+    $id = $env->model('res.partner')->create(['name' => 'Gone'])->ids()[0];
+
+    $this->deleteJson("/api/records/{$id}?model=res.partner")
+        ->assertNoContent();
+
+    expect($env->model('res.partner')->search([['id', '=', $id]])->count())->toBe(0);
+});
+
+test('post api records rejects unknown fields', function (): void {
+    $this->postJson('/api/records?model=res.partner', ['nope' => 'x'])
+        ->assertStatus(400)
+        ->assertJsonPath('message', 'Unknown field(s) on res.partner: nope');
+});

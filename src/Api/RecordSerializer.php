@@ -16,6 +16,25 @@ final class RecordSerializer
      * @param  list<string>|null  $fieldNames
      * @return list<array<string, mixed>>
      */
+    /**
+     * @param  array<string, mixed>  $row
+     * @param  list<string>|null  $fieldNames
+     * @return array<string, mixed>
+     */
+    public function serializeOne(
+        Environment $env,
+        string $model,
+        array $row,
+        ?array $fieldNames = null,
+    ): array {
+        return $this->serialize($env, $model, [$row], $fieldNames)[0];
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $rows
+     * @param  list<string>|null  $fieldNames
+     * @return list<array<string, mixed>>
+     */
     public function serialize(
         Environment $env,
         string $model,
