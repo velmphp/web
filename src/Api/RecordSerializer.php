@@ -8,6 +8,7 @@ use Velm\Environment;
 use Velm\Fields\Field;
 use Velm\Fields\Many2oneField;
 use Velm\Models\Model;
+use Velm\Registry;
 
 final class RecordSerializer
 {
@@ -77,7 +78,10 @@ final class RecordSerializer
             }
 
             if ($name === 'display_name') {
-                $out['display_name'] = $row['display_name'] ?? $modelClass::displayNameFor($row);
+                $out['display_name'] = $row['display_name'] ?? Registry::with(
+                    $env->registry,
+                    static fn (): string => $modelClass::displayNameFor($row),
+                );
 
                 continue;
             }
