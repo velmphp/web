@@ -32,7 +32,7 @@ test('get api views returns resolved arch json', function (): void {
     expect($response->json('arch'))->toBe($expected['arch']);
 });
 
-test('api arch matches registry arch used by filament pages', function (): void {
+test('api arch matches registry arch used by admin pages', function (): void {
     $env = app(\Velm\Environment::class);
     $registry = app(ViewRegistry::class);
     $apiArch = $registry->apiPayload($env, 'partners', 'partner.list')['arch'];

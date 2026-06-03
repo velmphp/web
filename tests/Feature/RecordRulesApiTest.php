@@ -37,9 +37,9 @@ test('get api records applies record rules for bound environment', function (): 
 
     $baseEnv->withAclBypass(fn () => $baseEnv->model('res.users')->create([
         'name' => 'Limited',
-        'login' => 'limited',
+        'email' => 'limited@velm.test',
     ]));
-    $limitedId = $baseEnv->model('res.users')->search([['login', '=', 'limited']])->ids()[0];
+    $limitedId = $baseEnv->model('res.users')->search([['email', '=', 'limited@velm.test']])->ids()[0];
     $limitedEnv = new Environment($baseEnv->connection, $baseEnv->registry, uid: $limitedId);
     $this->instance(Environment::class, $limitedEnv);
 
@@ -75,9 +75,9 @@ test('get api records with domain still applies record rules', function (): void
 
     $baseEnv->withAclBypass(fn () => $baseEnv->model('res.users')->create([
         'name' => 'Limited',
-        'login' => 'limited2',
+        'email' => 'limited2@velm.test',
     ]));
-    $limitedId = $baseEnv->model('res.users')->search([['login', '=', 'limited2']])->ids()[0];
+    $limitedId = $baseEnv->model('res.users')->search([['email', '=', 'limited2@velm.test']])->ids()[0];
     $limitedEnv = new Environment($baseEnv->connection, $baseEnv->registry, uid: $limitedId);
     $this->instance(Environment::class, $limitedEnv);
 
@@ -115,9 +115,9 @@ test('delete api records returns 404 when id is hidden by record rule', function
 
     $baseEnv->withAclBypass(fn () => $baseEnv->model('res.users')->create([
         'name' => 'Limited',
-        'login' => 'limited3',
+        'email' => 'limited3@velm.test',
     ]));
-    $limitedId = $baseEnv->model('res.users')->search([['login', '=', 'limited3']])->ids()[0];
+    $limitedId = $baseEnv->model('res.users')->search([['email', '=', 'limited3@velm.test']])->ids()[0];
     $limitedEnv = new Environment($baseEnv->connection, $baseEnv->registry, uid: $limitedId);
     $this->instance(Environment::class, $limitedEnv);
 
