@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Velm\Environment;
 use Velm\Exception\AccessDeniedException;
 use Velm\Modules\Base\Models\Attachment;
+use Velm\Modules\FileManager\FileManagerCompanyScope;
 use Velm\Storage\AttachmentStorage;
 final class AttachmentController
 {
@@ -64,15 +65,7 @@ final class AttachmentController
             'public' => $request->boolean('public'),
         ];
 
-        if ($env->companyId() !== null && $env->registry->hasFieldSet('ir.attachment')) {
-            $fields = $env->registry->fieldSet('ir.attachment');
-
-            if (isset($fields['company_id'])) {
-                $values['company_id'] = $env->companyId();
-            }
-        }
-
-        $att = $env->model('ir.attachment')->create($values);
+        $att = FileManagerCompanyScope::envForCreate($env)->model('ir.attachment')->create($values);
         $rows = $att->read(['id', 'name', 'mimetype', 'file_size']);
 
         return response()->json([

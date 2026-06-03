@@ -38,7 +38,7 @@ final class FileManagerController
         $folderId = $folderId !== null && $folderId !== '' ? (int) $folderId : null;
         $browse = $service->browse($folderId, $accept, $query);
 
-        return response()->view('velm-ui::file-manager.picker', [
+        return response()->view('velm-ui::file-manager.picker-page', [
             'pickerConfig' => [
                 'accept' => $accept,
                 'q' => $query,
@@ -48,6 +48,7 @@ final class FileManagerController
             ],
             'accept' => $accept,
             'canUpload' => $env->hasAccess('ir.attachment', 'create'),
+            'multi' => $request->boolean('multi'),
         ]);
     }
 

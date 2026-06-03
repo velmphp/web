@@ -35,7 +35,7 @@ test('file library page renders PyVelm shell hooks', function (): void {
         ->assertSee('Library', false)
         ->assertSee('All files', false)
         ->assertSee('Folders', false)
-        ->assertSee('pv-sidebar-nav--secondary', false)
+        ->assertDontSee('pv-sidebar-nav--secondary', false)
         ->assertDontSee('{#', false);
 });
 
