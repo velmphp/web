@@ -15,5 +15,7 @@ final class WebServiceProvider extends ServiceProvider
         Route::middleware(['api', BindVelmEnvironment::class])
             ->prefix('api')
             ->group(__DIR__.'/../routes/api.php');
+
+        $this->loadRoutesFrom(__DIR__.'/../routes/files.php');
     }
 }

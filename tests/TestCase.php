@@ -34,7 +34,7 @@ abstract class TestCase extends FrameworkTestCase
         parent::setUp();
 
         $manager = $this->app->make(VelmManager::class);
-        $manager->installBootstrap(['base']);
+        $manager->installBootstrap(['base', 'admin']);
         $manager->install('partners');
     }
 }
