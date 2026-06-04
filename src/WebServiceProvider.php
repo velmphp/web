@@ -17,5 +17,6 @@ final class WebServiceProvider extends ServiceProvider
             ->group(__DIR__.'/../routes/api.php');
 
         $this->loadRoutesFrom(__DIR__.'/../routes/files.php');
+        $this->loadRoutesFrom(__DIR__.'/../routes/workflow.php');
     }
 }
