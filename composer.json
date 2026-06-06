@@ -1,22 +1,21 @@
 {
     "name": "velmphp/web",
-    "version": "1.0.0",
     "description": "Velm HTTP layer — routes, middleware, JSON API",
-    "license": "LGPL-3.0-or-later",
+    "license": "MIT",
     "type": "library",
     "require": {
         "php": "^8.3",
         "illuminate/routing": "^13.0",
         "illuminate/support": "^13.0",
-        "velmphp/core": "^1.0@RC",
-        "velmphp/modules": "^1.0@RC",
-        "velmphp/views": "^1.0@RC"
+        "velmphp/core": "^1.0@dev",
+        "velmphp/modules": "^1.0@dev",
+        "velmphp/views": "^1.0@dev"
     },
     "require-dev": {
         "orchestra/testbench": "^11.0",
         "pestphp/pest": "^4.0",
         "pestphp/pest-plugin-laravel": "^4.0",
-        "velmphp/framework": "^1.0@RC"
+        "velmphp/framework": "^1.0@dev"
     },
     "autoload": { "psr-4": { "Velm\\Web\\": "src/" } },
     "autoload-dev": {
