@@ -10,7 +10,7 @@ use Velm\Web\Api\Many2oneQuickCreate;
 test('many2one quick create allows models with only name required', function (): void {
     $quickCreate = new Many2oneQuickCreate;
 
-    expect($quickCreate->canQuickCreate(\Velm\Modules\Partners\Models\Country::class))->toBeTrue();
+    expect($quickCreate->canQuickCreate(\Velm\Modules\Base\Models\Country::class))->toBeTrue();
 });
 
 test('many2one quick create rejects models with extra required fields', function (): void {

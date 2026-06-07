@@ -24,8 +24,7 @@ final class Many2oneQuickCreate
             throw new \InvalidArgumentException("Missing 'name'.");
         }
 
-        $modelClass = $env->registry->modelClass($model);
-        $fields = $modelClass::fields();
+        $fields = $env->registry->fieldSet($model);
 
         if (! isset($fields['name'])) {
             throw new \InvalidArgumentException("Model {$model} has no name field for quick-create.");
@@ -50,6 +49,10 @@ final class Many2oneQuickCreate
         $missing = [];
 
         foreach ($fields as $fieldName => $field) {
+            if (! $field->persistsInDatabase() || $field->readonly) {
+                continue;
+            }
+
             if (! $field->required || $fieldName === 'name') {
                 continue;
             }

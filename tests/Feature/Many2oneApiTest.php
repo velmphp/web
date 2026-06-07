@@ -14,26 +14,32 @@ beforeEach(function (): void {
 
 test('get api m2o search returns id and label pairs', function (): void {
     $env = app(\Velm\Environment::class);
-    $env->model('res.country')->create(['name' => 'Belgium', 'code' => 'BE']);
-    $env->model('res.country')->create(['name' => 'France', 'code' => 'FR']);
+    $env->model('res.country')->create(['name' => 'API Belgium', 'code' => 'AB']);
+    $env->model('res.country')->create(['name' => 'API France', 'code' => 'AF']);
 
     $response = $this->getJson('/api/m2o/search?model=res.country');
 
     $response->assertOk()
-        ->assertJsonCount(2, 'results')
         ->assertJsonStructure(['results' => [['id', 'label']]]);
+
+    $labels = collect($response->json('results'))->pluck('label')->all();
+
+    expect($labels)->toContain('API Belgium', 'API France');
 });
 
 test('get api m2o search filters by query on name', function (): void {
     $env = app(\Velm\Environment::class);
-    $env->model('res.country')->create(['name' => 'Belgium', 'code' => 'BE']);
-    $env->model('res.country')->create(['name' => 'France', 'code' => 'FR']);
+    $env->model('res.country')->create(['name' => 'API Belgium', 'code' => 'AB']);
+    $env->model('res.country')->create(['name' => 'API France', 'code' => 'AF']);
 
-    $response = $this->getJson('/api/m2o/search?model=res.country&q=bel');
+    $response = $this->getJson('/api/m2o/search?'.http_build_query([
+        'model' => 'res.country',
+        'q' => 'API bel',
+    ]));
 
     $response->assertOk()
         ->assertJsonCount(1, 'results')
-        ->assertJsonPath('results.0.label', 'Belgium');
+        ->assertJsonPath('results.0.label', 'API Belgium');
 });
 
 test('get api m2o search respects limit', function (): void {

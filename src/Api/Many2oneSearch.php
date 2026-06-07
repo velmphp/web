@@ -8,7 +8,6 @@ use Velm\Environment;
 use Velm\Fields\CharField;
 use Velm\Fields\Field;
 use Velm\Fields\TextField;
-use Velm\Models\Model;
 
 final class Many2oneSearch
 {
@@ -25,9 +24,9 @@ final class Many2oneSearch
             throw ModelNotFoundException::forModel($model);
         }
 
-        $modelClass = $env->registry->modelClass($model);
+        $fields = $env->registry->fieldSet($model);
         $domain = [];
-        $textField = $this->resolveTextField($modelClass);
+        $textField = $this->resolveTextField($fields);
 
         if ($query !== '' && $textField !== null) {
             $domain[] = [$textField, 'ilike', '%'.$query.'%'];
@@ -48,12 +47,10 @@ final class Many2oneSearch
     }
 
     /**
-     * @param  class-string<Model>  $modelClass
+     * @param  array<string, Field>  $fields
      */
-    private function resolveTextField(string $modelClass): ?string
+    private function resolveTextField(array $fields): ?string
     {
-        $fields = $modelClass::fields();
-
         if (isset($fields['name']) && $this->isTextLike($fields['name'])) {
             return 'name';
         }
