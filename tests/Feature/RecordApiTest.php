@@ -142,3 +142,34 @@ test('post api records rejects unknown fields', function (): void {
         ->assertStatus(400)
         ->assertJsonPath('message', 'Unknown field(s) on res.partner: nope');
 });
+
+test('post api records rejects empty json body', function (): void {
+    $this->postJson('/api/records?model=res.partner', [])
+        ->assertStatus(400)
+        ->assertJsonPath('message', 'Request body must be a JSON object.');
+});
+
+test('patch api records rejects empty json body', function (): void {
+    $env = app(\Velm\Environment::class);
+    $id = $env->model('res.partner')->create(['name' => 'Patch body'])->ids()[0];
+
+    $this->patchJson("/api/records/{$id}?model=res.partner", [])
+        ->assertStatus(400)
+        ->assertJsonPath('message', 'Request body must be a JSON object.');
+});
+
+test('delete api records requires model query parameter', function (): void {
+    $this->deleteJson('/api/records/1')
+        ->assertStatus(400)
+        ->assertJsonPath('message', 'Query parameter model is required.');
+});
+
+test('get api records supports offset and order parameters', function (): void {
+    $env = app(\Velm\Environment::class);
+    $env->model('res.partner')->create(['name' => 'AAA']);
+    $env->model('res.partner')->create(['name' => 'ZZZ']);
+
+    $this->getJson('/api/records?model=res.partner&fields=name&order=name desc&offset=0&limit=1')
+        ->assertOk()
+        ->assertJsonPath('count', 1);
+});

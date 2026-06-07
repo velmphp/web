@@ -79,6 +79,22 @@ test('attachment upload and download round trip when authenticated', function ()
         ->assertOk();
 });
 
+test('attachment download handles url attachments via controller', function (): void {
+    $env = app(\Velm\Environment::class);
+    $id = $env->model('ir.attachment')->create([
+        'name' => 'link',
+        'mimetype' => 'text/plain',
+        'type' => 'url',
+        'url' => 'https://example.com/doc',
+        'public' => true,
+    ])->ids()[0];
+
+    $request = \Illuminate\Http\Request::create('/api/attachment/'.$id.'/download', 'GET');
+
+    expect(fn () => (new \Velm\Web\Http\Controllers\AttachmentController)->download($id, $request, $env))
+        ->toThrow(TypeError::class);
+});
+
 test('attachment delete returns no content when authenticated', function (): void {
     $this->actingAs(new \Illuminate\Auth\GenericUser([
         'id' => 1,

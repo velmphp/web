@@ -157,3 +157,24 @@ test('file properties page renders for attachment', function (): void {
     $this->get('/web/files/'.$attId.'/properties')
         ->assertOk();
 });
+
+test('file manager update folder validates name', function (): void {
+    fileManagerActAsAdmin();
+
+    $folderId = (int) $this->postJson('/web/files/folders', ['name' => 'Rename me'])->json('id');
+
+    $this->patchJson('/web/files/folders/'.$folderId, ['name' => ''])
+        ->assertStatus(400);
+});
+
+test('file manager controller properties action renders view', function (): void {
+    fileManagerActAsAdmin();
+
+    $file = TestUpload::file('meta.txt', 'meta');
+    $attId = (int) $this->post('/web/files/picker/upload', ['file' => $file])->json('id');
+    $env = app(\Velm\Environment::class);
+
+    $response = (new \Velm\Web\Http\Controllers\FileManagerController)->properties($attId, $env);
+
+    expect($response->getStatusCode())->toBe(200);
+});

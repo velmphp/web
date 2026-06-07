@@ -52,3 +52,33 @@ test('mail thread api returns context and accepts messages', function (): void {
         'follow' => true,
     ])->assertOk()->assertJsonPath('ok', true);
 });
+
+test('mail thread api returns has_thread false for unsupported model', function (): void {
+    $this->getJson('/web/mail/thread?res_model=res.partner&res_id=1')
+        ->assertOk()
+        ->assertJsonPath('has_thread', false);
+});
+
+test('mail thread post message validates body and parameters', function (): void {
+    $this->postJson('/web/mail/messages', ['res_model' => '', 'res_id' => 0])
+        ->assertStatus(400);
+
+    $env = app(\Velm\Environment::class);
+    $changeId = $env->model('it.change')->create([
+        'name' => 'Validation change',
+        'change_type' => 'standard',
+        'priority' => '2',
+        'risk_level' => 'low',
+    ])->ids()[0];
+
+    $this->postJson('/web/mail/messages', [
+        'res_model' => 'it.change',
+        'res_id' => $changeId,
+        'body' => '   ',
+    ])->assertStatus(400);
+});
+
+test('mail thread follow validates parameters', function (): void {
+    $this->postJson('/web/mail/follow', ['res_model' => 'it.change', 'res_id' => 0])
+        ->assertStatus(400);
+});

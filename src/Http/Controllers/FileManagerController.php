@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Velm\Environment;
 use Velm\Modules\Base\Models\Attachment;
@@ -176,7 +177,7 @@ final class FileManagerController
         return response()->json(['copied' => $service->copyAttachments($ids, $folderId)]);
     }
 
-    public function bulkDownload(Request $request, Environment $env): StreamedResponse|Response
+    public function bulkDownload(Request $request, Environment $env): StreamedResponse|Response|BinaryFileResponse
     {
         $this->guardAuth();
         $service = new FileManagerService($env);
