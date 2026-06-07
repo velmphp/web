@@ -173,3 +173,90 @@ test('get api records supports offset and order parameters', function (): void {
         ->assertOk()
         ->assertJsonPath('count', 1);
 });
+
+test('get api records returns 403 when read access is denied', function (): void {
+    $baseEnv = app(\Velm\Environment::class);
+    $baseEnv->withAclBypass(fn () => $baseEnv->model('res.users')->create([
+        'name' => 'No partner read',
+        'email' => 'nopartnerread@test',
+    ]));
+    $uid = $baseEnv->model('res.users')->search([['email', '=', 'nopartnerread@test']])->ids()[0];
+    $this->instance(\Velm\Environment::class, new \Velm\Environment($baseEnv->connection, $baseEnv->registry, uid: $uid));
+
+    $this->getJson('/api/records?model=res.partner&fields=name')
+        ->assertStatus(403);
+});
+
+test('get api records rejects non-array domain json', function (): void {
+    $this->getJson('/api/records?model=res.partner&domain='.urlencode('"not-an-array"'))
+        ->assertStatus(400)
+        ->assertJsonPath('message', 'Domain must be a JSON array.');
+});
+
+test('post api records requires model query parameter', function (): void {
+    $this->postJson('/api/records', ['name' => 'Missing model param'])
+        ->assertStatus(400)
+        ->assertJsonPath('message', 'Query parameter model is required.');
+});
+
+test('post api records returns 404 for unknown model', function (): void {
+    $this->postJson('/api/records?model=no.such', ['name' => 'X'])
+        ->assertNotFound();
+});
+
+test('post api records returns 403 when create access is denied', function (): void {
+    $baseEnv = app(\Velm\Environment::class);
+    $baseEnv->withAclBypass(fn () => $baseEnv->model('res.users')->create([
+        'name' => 'No partner create',
+        'email' => 'nopartnercreate@test',
+    ]));
+    $uid = $baseEnv->model('res.users')->search([['email', '=', 'nopartnercreate@test']])->ids()[0];
+    $this->instance(\Velm\Environment::class, new \Velm\Environment($baseEnv->connection, $baseEnv->registry, uid: $uid));
+
+    $this->postJson('/api/records?model=res.partner', ['name' => 'Denied'])
+        ->assertStatus(403);
+});
+
+test('patch api records requires model query parameter', function (): void {
+    $this->patchJson('/api/records/1', ['name' => 'X'])
+        ->assertStatus(400)
+        ->assertJsonPath('message', 'Query parameter model is required.');
+});
+
+test('patch api records returns 403 when write access is denied', function (): void {
+    $baseEnv = app(\Velm\Environment::class);
+    $id = $baseEnv->model('res.partner')->create(['name' => 'Locked'])->ids()[0];
+    $baseEnv->withAclBypass(function () use ($baseEnv): void {
+        $baseEnv->model('ir.model.access')->create([
+            'name' => 'Partner read only',
+            'model' => 'res.partner',
+            'group_id' => null,
+            'perm_read' => true,
+        ]);
+        $baseEnv->model('res.users')->create(['name' => 'Read only', 'email' => 'readonly@test']);
+    });
+    $uid = $baseEnv->model('res.users')->search([['email', '=', 'readonly@test']])->ids()[0];
+    $this->instance(\Velm\Environment::class, new \Velm\Environment($baseEnv->connection, $baseEnv->registry, uid: $uid));
+
+    $this->patchJson("/api/records/{$id}?model=res.partner", ['name' => 'Nope'])
+        ->assertStatus(403);
+});
+
+test('delete api records returns 403 when unlink access is denied', function (): void {
+    $baseEnv = app(\Velm\Environment::class);
+    $id = $baseEnv->model('res.partner')->create(['name' => 'Protected'])->ids()[0];
+    $baseEnv->withAclBypass(function () use ($baseEnv): void {
+        $baseEnv->model('ir.model.access')->create([
+            'name' => 'Partner read only unlink',
+            'model' => 'res.partner',
+            'group_id' => null,
+            'perm_read' => true,
+        ]);
+        $baseEnv->model('res.users')->create(['name' => 'Cant delete', 'email' => 'cantdelete@test']);
+    });
+    $uid = $baseEnv->model('res.users')->search([['email', '=', 'cantdelete@test']])->ids()[0];
+    $this->instance(\Velm\Environment::class, new \Velm\Environment($baseEnv->connection, $baseEnv->registry, uid: $uid));
+
+    $this->deleteJson('/api/records/'.$id.'?model=res.partner')
+        ->assertStatus(403);
+});

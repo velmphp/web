@@ -67,3 +67,14 @@ test('serializeMany2one returns id pair when related row missing', function (): 
 
     expect($out['country_id'])->toBe([99999, '99999']);
 });
+
+test('serialize computes display_name when row omits it', function (): void {
+    $id = $this->env->model('res.partner')->create(['name' => 'Computed Label'])->ids()[0];
+    $row = $this->env->browse('res.partner', [$id])->read(['id', 'name'])[0];
+
+    unset($row['display_name']);
+
+    $out = $this->serializer->serializeOne($this->env, 'res.partner', $row, ['display_name']);
+
+    expect($out['display_name'])->toBe('Computed Label');
+});
