@@ -102,6 +102,22 @@ test('file manager tree and picker page render for authenticated user', function
         ->assertSee('picker', false);
 });
 
+test('picker page accepts multi and accept query parameters', function (): void {
+    fileManagerActAsAdmin();
+
+    $this->get('/web/files/picker?multi=1&accept=image/png&q=logo')
+        ->assertOk()
+        ->assertSee('picker', false);
+});
+
+test('create folder accepts form encoded payload', function (): void {
+    fileManagerActAsAdmin();
+
+    $this->post('/web/files/folders', ['name' => 'Form Folder', 'parent_id' => ''])
+        ->assertCreated()
+        ->assertJsonPath('name', 'Form Folder');
+});
+
 test('folder delete via api', function (): void {
     fileManagerActAsAdmin();
 
@@ -115,4 +131,29 @@ test('bulk download requires ids', function (): void {
     fileManagerActAsAdmin();
 
     $this->postJson('/web/files/bulk/download', [])->assertStatus(400);
+});
+
+test('picker browse supports search query and accept filter', function (): void {
+    fileManagerActAsAdmin();
+
+    $folder = $this->postJson('/web/files/folders', ['name' => 'SearchFolder'])->json('id');
+    $pdf = TestUpload::file('findme.pdf', '%PDF', 'application/pdf');
+    $this->post('/web/files/picker/upload', [
+        'file' => $pdf,
+        'folder_id' => $folder,
+    ]);
+
+    $this->getJson('/web/files/picker/browse?folder_id='.$folder.'&q=findme&accept=application/pdf')
+        ->assertOk()
+        ->assertJsonPath('rows.0.name', 'findme.pdf');
+});
+
+test('file properties page renders for attachment', function (): void {
+    fileManagerActAsAdmin();
+
+    $file = TestUpload::file('props.txt', 'props');
+    $attId = (int) $this->post('/web/files/picker/upload', ['file' => $file])->json('id');
+
+    $this->get('/web/files/'.$attId.'/properties')
+        ->assertOk();
 });

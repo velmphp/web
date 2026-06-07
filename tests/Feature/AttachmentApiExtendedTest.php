@@ -61,3 +61,40 @@ test('public attachment download works without session auth', function (): void 
     $this->get('/api/attachment/'.$id.'/download')
         ->assertOk();
 });
+
+test('attachment upload and download round trip when authenticated', function (): void {
+    $this->actingAs(new \Illuminate\Auth\GenericUser([
+        'id' => 1,
+        'remember_token' => null,
+    ]));
+
+    $file = UploadedFile::fake()->createWithContent('note.txt', 'hello attachment', 'text/plain');
+
+    $upload = $this->post('/api/attachment/upload', ['file' => $file]);
+    $upload->assertCreated();
+
+    $id = (int) $upload->json('id');
+
+    $this->getJson('/api/attachment/'.$id.'/download')
+        ->assertOk();
+});
+
+test('attachment delete returns no content when authenticated', function (): void {
+    $this->actingAs(new \Illuminate\Auth\GenericUser([
+        'id' => 1,
+        'remember_token' => null,
+    ]));
+
+    $env = app(\Velm\Environment::class);
+    $id = $env->model('ir.attachment')->create([
+        'name' => 'del.txt',
+        'mimetype' => 'text/plain',
+        'type' => 'binary',
+        'datas' => base64_encode('bye'),
+        'file_size' => 3,
+        'public' => false,
+    ])->ids()[0];
+
+    $this->deleteJson('/api/attachment/'.$id)
+        ->assertNoContent();
+});
