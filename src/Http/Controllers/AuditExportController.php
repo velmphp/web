@@ -64,9 +64,6 @@ final class AuditExportController
 
         return response()->streamDownload(function () use ($rows, $fields): void {
             $handle = fopen('php://output', 'w');
-            if ($handle === false) {
-                return;
-            }
 
             fputcsv($handle, $fields);
 
