@@ -3,9 +3,14 @@
 declare(strict_types=1);
 
 use Illuminate\Auth\GenericUser;
+use Velm\Database\PdoConnection;
+use Velm\Environment;
 use Velm\Modules\GeoData\GeoApiImporter;
 use Velm\Modules\GeoData\GeoHttpGateway;
 use Velm\Modules\ModuleInstaller;
+use Velm\Registry;
+use Velm\Schema\SchemaBuilder;
+use Velm\Web\Http\Controllers\GeoImportController;
 use Velm\Web\Tests\TestCase;
 
 uses(TestCase::class);
@@ -86,4 +91,60 @@ test('geo import endpoint imports geography via api importer', function (): void
     $env = app(\Velm\Environment::class);
 
     expect($env->model('res.city')->search()->count())->toBe(2);
+});
+
+test('geo import endpoint returns forbidden without write access', function (): void {
+    $env = app(\Velm\Environment::class);
+    $groupId = (int) $env->model('res.groups')->search([['name', '=', 'Public']], limit: 1)->ids()[0];
+    $userId = (int) $env->model('res.users')->create([
+        'name' => 'No Geo Write',
+        'email' => 'nogeowrite@velm.test',
+        'password' => 'secret',
+        'group_ids' => [$groupId],
+    ])->ids()[0];
+
+    app()->instance(\Velm\Environment::class, new \Velm\Environment(
+        $env->connection,
+        $env->registry,
+        $userId,
+    ));
+
+    $this->actingAs(new GenericUser(['id' => $userId, 'email' => 'nogeowrite@velm.test']))
+        ->post('/web/geo/import')
+        ->assertForbidden();
+});
+
+test('geo import endpoint returns not found when geo models are missing', function (): void {
+    $envWithoutGeo = Registry::using(function (Registry $registry): Environment {
+        $connection = PdoConnection::sqliteMemory();
+        (new SchemaBuilder($connection))->syncRegistry($registry);
+
+        return new Environment($connection, $registry, uid: 1);
+    });
+
+    $response = (new GeoImportController)->import($envWithoutGeo, new GeoApiImporter);
+
+    expect($response->getStatusCode())->toBe(404)
+        ->and($response->getData(true)['message'])->toBe('Geo data module is not installed.');
+});
+
+test('geo import endpoint returns bad gateway when importer throws', function (): void {
+    $http = new class implements GeoHttpGateway
+    {
+        public function get(string $url): array
+        {
+            throw new RuntimeException('Upstream unavailable');
+        }
+
+        public function post(string $url, array $body): array
+        {
+            throw new RuntimeException('Upstream unavailable');
+        }
+    };
+
+    $this->app->instance(GeoApiImporter::class, new GeoApiImporter($http));
+
+    $this->post('/web/geo/import')
+        ->assertStatus(502)
+        ->assertJson(['message' => 'Upstream unavailable']);
 });
