@@ -4,13 +4,37 @@ declare(strict_types=1);
 
 namespace Velm\Web\Tests;
 
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\RefreshDatabaseState;
+use Velm\Framework\Testing\InstallsVelmModules;
 use Velm\Framework\Tests\TestCase as FrameworkTestCase;
-use Velm\Framework\VelmManager;
 
 abstract class TestCase extends FrameworkTestCase
 {
-    use RefreshDatabase;
+    use InstallsVelmModules;
+    use RefreshDatabase {
+        InstallsVelmModules::migrateDatabases insteadof RefreshDatabase;
+    }
+
+    protected function refreshTestDatabase(): void
+    {
+        if (! RefreshDatabaseState::$migrated) {
+            if (! static::velmTestingDatabaseIsReady()) {
+                $this->migrateDatabases();
+
+                $this->app->make(Kernel::class)->setArtisan(null);
+
+                $this->updateLocalCacheOfInMemoryDatabases();
+            } else {
+                $this->bootstrapVelmForTests();
+            }
+
+            RefreshDatabaseState::$migrated = true;
+        }
+
+        $this->beginDatabaseTransaction();
+    }
 
     protected function defineEnvironment($app): void
     {
@@ -19,6 +43,15 @@ abstract class TestCase extends FrameworkTestCase
         $app['config']->set('velm.addon_paths', [
             dirname(__DIR__, 2).'/modules/modules',
             dirname(__DIR__, 2).'/modules/tests/fixtures',
+        ]);
+
+        $database = storage_path('framework/velm-testing-'.getmypid().'.sqlite');
+
+        $app['config']->set('database.connections.testing', [
+            'driver' => 'sqlite',
+            'database' => $database,
+            'prefix' => '',
+            'foreign_key_constraints' => true,
         ]);
 
         $app['config']->set('velm.bootstrap_modules', ['base']);
@@ -30,12 +63,11 @@ abstract class TestCase extends FrameworkTestCase
         $this->loadMigrationsFrom(dirname(__DIR__, 2).'/modules/database/migrations');
     }
 
-    protected function setUp(): void
+    /**
+     * @return list<string>
+     */
+    protected function velmBootstrapModules(): array
     {
-        parent::setUp();
-
-        $manager = $this->app->make(VelmManager::class);
-        $manager->installBootstrap(['base', 'admin']);
-        $manager->install('partners');
+        return ['base', 'admin'];
     }
 }

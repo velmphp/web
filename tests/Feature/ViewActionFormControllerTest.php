@@ -58,3 +58,24 @@ test('inline view action form updates existing partner', function (): void {
 
     expect($row['name'])->toBe('After inline edit');
 });
+
+test('inline view action form returns not found for unknown action', function (): void {
+    $this->get('/web/view-actions/partners/partner.list/page/missing-action/form')
+        ->assertNotFound()
+        ->assertJson(['message' => 'Action not found.']);
+});
+
+test('inline view action form rejects empty json submit body', function (): void {
+    $this->postJson('/web/view-actions/partners/partner.list/page/quick-add/form', [])
+        ->assertUnprocessable()
+        ->assertJson(['message' => 'Request body must be a JSON object.']);
+});
+
+test('inline view action form edit url includes record query on detail header action', function (): void {
+    $env = app(\Velm\Environment::class);
+    $id = $env->model('res.partner')->create(['name' => 'Render Me'])->ids()[0];
+
+    $this->get('/web/view-actions/partners/partner.detail/header/quick-edit/form?record='.$id)
+        ->assertOk()
+        ->assertSee('Render Me', false);
+});
