@@ -21,6 +21,7 @@ final class WebServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__.'/../routes/mail.php');
         $this->loadRoutesFrom(__DIR__.'/../routes/demo.php');
         $this->loadRoutesFrom(__DIR__.'/../routes/geo.php');
+        $this->loadRoutesFrom(__DIR__.'/../routes/currencies.php');
         $this->loadRoutesFrom(__DIR__.'/../routes/view-actions.php');
     }
 }
