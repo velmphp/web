@@ -65,6 +65,23 @@ test('demo partner duplicate creates copy and returns redirect', function (): vo
         ->and($env->model('res.partner')->search([['name', '=', 'Original Co (copy)']])->count())->toBe(1);
 });
 
+test('demo partner export filters by bulk ids query param', function (): void {
+    $env = app(\Velm\Environment::class);
+    $included = $env->model('res.partner')->create(['name' => 'Included Partner'])->ids()[0];
+    $env->model('res.partner')->create(['name' => 'Excluded Partner']);
+
+    $response = $this->get('/web/demo/partners/export?ids='.$included);
+
+    $response->assertOk();
+
+    ob_start();
+    $response->sendContent();
+    $content = ob_get_clean();
+
+    expect($content)->toContain('Included Partner')
+        ->and($content)->not->toContain('Excluded Partner');
+});
+
 test('demo partner json export downloads record payload', function (): void {
     $env = app(\Velm\Environment::class);
     $id = $env->model('res.partner')->create(['name' => 'Json Partner'])->ids()[0];

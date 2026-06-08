@@ -37,7 +37,7 @@ final class ViewActionsController
         ]);
     }
 
-    public function exportPartners(Environment $env): StreamedResponse|JsonResponse
+    public function exportPartners(Environment $env, Request $request): StreamedResponse|JsonResponse
     {
         try {
             $env->checkAccess('res.partner', 'read');
@@ -49,7 +49,10 @@ final class ViewActionsController
             return response()->json(['message' => 'Partners module is not installed.'], 404);
         }
 
-        $rows = $env->model('res.partner')->search([], order: 'name asc')->read([
+        $ids = $this->parseBulkIds($request);
+        $domain = $ids !== [] ? [['id', 'in', $ids]] : [];
+
+        $rows = $env->model('res.partner')->search($domain, order: 'name asc')->read([
             'name',
             'is_company',
             'active',
@@ -134,6 +137,33 @@ final class ViewActionsController
             'message' => 'Partner duplicated.',
             'redirect' => '/velm/views/partners/partner.detail/'.$newId,
         ]);
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function parseBulkIds(Request $request): array
+    {
+        $raw = $request->query('ids');
+
+        if ($raw === null || $raw === '') {
+            $body = $request->input('ids');
+
+            if (is_array($body)) {
+                return array_values(array_filter(array_map(intval(...), $body), static fn (int $id): bool => $id > 0));
+            }
+
+            return [];
+        }
+
+        if (is_array($raw)) {
+            return array_values(array_filter(array_map(intval(...), $raw), static fn (int $id): bool => $id > 0));
+        }
+
+        return array_values(array_filter(
+            array_map(intval(...), explode(',', (string) $raw)),
+            static fn (int $id): bool => $id > 0,
+        ));
     }
 
 }
