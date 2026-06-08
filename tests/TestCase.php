@@ -22,6 +22,7 @@ abstract class TestCase extends FrameworkTestCase
         ]);
 
         $app['config']->set('velm.bootstrap_modules', ['base']);
+        $app['config']->set('velm.geo_country', 'BE');
     }
 
     protected function defineDatabaseMigrations(): void

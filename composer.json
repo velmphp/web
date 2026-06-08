@@ -9,6 +9,7 @@
         "illuminate/support": "^13.0",
         "velmphp/core": "^1.0",
         "velmphp/modules": "^1.0",
+        "velmphp/ui": "^1.0",
         "velmphp/views": "^1.0"
     },
     "require-dev": {

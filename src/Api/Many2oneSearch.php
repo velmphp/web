@@ -25,7 +25,7 @@ final class Many2oneSearch
         }
 
         $fields = $env->registry->fieldSet($model);
-        $domain = [];
+        $domain = $env->registry->modelClass($model)::relationalSearchDomain();
         $textField = $this->resolveTextField($fields);
 
         if ($query !== '' && $textField !== null) {
